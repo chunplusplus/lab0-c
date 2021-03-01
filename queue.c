@@ -12,7 +12,10 @@
 queue_t *q_new()
 {
     queue_t *q = malloc(sizeof(queue_t));
-    /* TODO: What if malloc returned NULL? */
+
+    if (q == NULL)
+        return NULL;
+
     q->head = NULL;
     q->tail = NULL;
     q->size = 0;
@@ -48,7 +51,7 @@ bool q_insert_head(queue_t *q, char *s)
     newh->next = q->head;
     newh->value = malloc(sizeof(char) * (strlen(s) + 1));
     strncpy(newh->value, s, strlen(s));
-    newh->value[strlen(s) - 1] = '\0';
+    newh->value[strlen(s)] = '\0';
 
     q->head = newh;
     if (q->tail == NULL)
@@ -76,7 +79,7 @@ bool q_insert_tail(queue_t *q, char *s)
     newt->value = malloc(sizeof(char) * (strlen(s) + 1));
 
     strncpy(newt->value, s, strlen(s));
-    newt->value[strlen(s) - 1] = '\0';
+    newt->value[strlen(s)] = '\0';
 
     q->tail->next = newt;
     q->tail = newt;
@@ -95,10 +98,10 @@ bool q_insert_tail(queue_t *q, char *s)
  */
 bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
 {
-    list_ele_t *ele = q->head;
-    if (ele == NULL)
+    if (q == NULL || q->head == NULL)
         return false;
 
+    list_ele_t *ele = q->head;
     if (sp != NULL) {
         strncpy(sp, ele->value, bufsize - 1);
         sp[bufsize - 1] = '\0';
@@ -139,12 +142,13 @@ void ele_reverse(list_ele_t *ele, list_ele_t *prev)
  */
 void q_reverse(queue_t *q)
 {
+    if (q == NULL)
+        return;
+
     ele_reverse(q->head, NULL);
     list_ele_t *temp = q->head;
     q->head = q->tail;
     q->tail = temp;
-    /* TODO: You need to write the code for this function */
-    /* TODO: Remove the above comment when you are about to implement. */
 }
 
 
