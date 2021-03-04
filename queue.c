@@ -242,12 +242,102 @@ list_ele_t *merge_sort(list_ele_t *head)
     return merge(l1, l2);
 }
 
+void list_concat(list_ele_t **left, list_ele_t *right)
+{
+    while (*left) {
+        left = &((*left)->next);
+    }
+    *left = right;
+}
+
+void list_add_ele_t(list_ele_t **list, list_ele_t *ele)
+{
+    ele->next = *list;
+    *list = ele;
+}
+
 void q_sort(queue_t *q)
 {
     if (q == NULL || q->head == NULL || q->head->next == NULL)
         return;
-    q->head = merge_sort(q->head);
-    q->tail = q->head;
-    while (q->tail && q->tail->next != NULL)
-        q->tail = q->tail->next;
+
+        // q->head = merge_sort(q->head);
+        // q->tail = q->head;
+        // while (q->tail && q->tail->next != NULL)
+        //    q->tail = q->tail->next;
+
+#define MAX_LEVELS 300
+
+    void *beg[MAX_LEVELS],
+        *end[MAX_LEVELS];  // use to record range for quick sort
+    beg[0] = q->head;
+    end[0] = NULL;
+
+    int cur_index = 0;
+
+    do {
+        list_ele_t *pivot = (list_ele_t *) beg[cur_index];
+        // char *value = pivot->value;
+
+        list_ele_t *p = pivot->next;
+        pivot->next = NULL;
+
+        list_ele_t *left = NULL, *right = NULL;
+        list_ele_t *left_tail = NULL, *right_tail = NULL;
+
+        // quick sort in the range
+        while (p != end[cur_index]) {
+            list_ele_t *n = p;
+            p = p->next;
+
+            if (strcmp(n->value, pivot->value) > 0) {
+                list_add_ele_t(&right, n);
+                if (right_tail == NULL)
+                    right_tail = n;
+            } else {
+                list_add_ele_t(&left, n);
+                if (left_tail == NULL)
+                    left_tail = n;
+            }
+        }
+
+        list_ele_t *result = NULL;
+
+        // cut the queue to pivot and concat to result
+        if (q->head != pivot) {
+            list_ele_t *list_head = q->head;
+            while (list_head->next && list_head->next != pivot)
+                list_head = list_head->next;
+            list_head->next = NULL;
+            list_concat(&result, q->head);
+        }
+
+        list_concat(&result, left);
+        list_concat(&result, pivot);
+        list_concat(&result, right);
+
+        if (p)
+            list_concat(&result, p);
+
+        cur_index--;
+
+        if (left && left->next) {
+            cur_index++;
+            beg[cur_index] = left;
+            end[cur_index] = left_tail->next;
+        }
+
+        if (right && right->next) {
+            cur_index++;
+            beg[cur_index] = right;
+            end[cur_index] = right_tail->next;
+        }
+
+        q->head = q->tail = p = result;
+        while (p && p->next)
+            p = p->next;
+        q->tail = p;
+
+
+    } while (cur_index >= 0);
 }
