@@ -289,19 +289,26 @@ void q_sort(queue_t *q)
         list_ele_t *p = pivot->next;
         pivot->next = NULL;
 
-        list_ele_t *left = NULL, *right = NULL;
-        list_ele_t *left_tail = NULL, *right_tail = NULL;
+        list_ele_t *left = NULL, *right = NULL, *center = NULL;
+        list_ele_t *left_tail = NULL, *right_tail = NULL, *center_tail = NULL;
 
         // quick sort in the range
         while (p != end[cur_index]) {
             list_ele_t *n = p;
             p = p->next;
 
-            if (strcmp(n->value, pivot->value) > 0) {
+	    int cmp = strcmp(n->value, pivot->value);
+            if (cmp > 0) {
                 list_add_ele_t(&right, n);
                 if (right_tail == NULL)
                     right_tail = n;
-            } else {
+            } 
+	    else if (cmp == 0) {
+		list_add_ele_t(&center, n);
+		if (center_tail == NULL)
+		    center_tail = n;
+	    }
+	    else {
                 list_add_ele_t(&left, n);
                 if (left_tail == NULL)
                     left_tail = n;
@@ -335,6 +342,11 @@ void q_sort(queue_t *q)
 
         list_concat(result ? &tail : &result, pivot);
 	tail = pivot;
+
+	if (center_tail) {
+	    list_concat(&tail, center);
+	    tail = center_tail;
+	}
 
 	if (right_tail) {		
             list_concat(&tail, right);
