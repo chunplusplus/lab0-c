@@ -242,13 +242,19 @@ list_ele_t *merge_sort(list_ele_t *head)
     return merge(l1, l2);
 }
 
-void list_concat(list_ele_t **left, list_ele_t *right)
+void list_concat(list_ele_t **tail, list_ele_t *right)
 {
-    while (*left) {
-        left = &((*left)->next);
-    }
-    *left = right;
+    //while (*left) {
+    //    left = &((*left)->next);
+    //}
+    //*left = right;
+    if (*tail) 
+        (*tail)->next = right;
+    else 
+	*tail = right;
 }
+
+//void q_concat
 
 void list_add_ele_t(list_ele_t **list, list_ele_t *ele)
 {
@@ -268,15 +274,16 @@ void q_sort(queue_t *q)
 
 #define MAX_LEVELS 300
 
-    void *beg[MAX_LEVELS],
+    list_ele_t *beg[MAX_LEVELS],
         *end[MAX_LEVELS];  // use to record range for quick sort
-    beg[0] = q->head;
+    beg[0] = NULL; //q->head;
     end[0] = NULL;
 
     int cur_index = 0;
 
     do {
-        list_ele_t *pivot = (list_ele_t *) beg[cur_index];
+	
+        list_ele_t *pivot = beg[cur_index] ? (beg[cur_index])->next : q->head;
         // char *value = pivot->value;
 
         list_ele_t *p = pivot->next;
@@ -301,43 +308,62 @@ void q_sort(queue_t *q)
             }
         }
 
-        list_ele_t *result = NULL;
+        list_ele_t *result = NULL, *tail = NULL;
 
         // cut the queue to pivot and concat to result
-        if (q->head != pivot) {
+/*
+	if (q->head != pivot) {
             list_ele_t *list_head = q->head;
             while (list_head->next && list_head->next != pivot)
                 list_head = list_head->next;
             list_head->next = NULL;
             list_concat(&result, q->head);
         }
+*/
+        	
+	if (beg[cur_index])
+	{
+            tail = beg[cur_index];
+	    //->next = NULL;
+            list_concat(&result, q->head);	    
+	}
+        
+	if (left_tail) {	
+	    list_concat(result ? &tail : &result, left);
+	    tail = left_tail;
+	}
 
-        list_concat(&result, left);
-        list_concat(&result, pivot);
-        list_concat(&result, right);
+        list_concat(result ? &tail : &result, pivot);
+	tail = pivot;
+
+	if (right_tail) {		
+            list_concat(&tail, right);
+	    tail = right_tail;
+	}
 
         if (p)
-            list_concat(&result, p);
+            list_concat(&tail, p);
+	else 
+	    q->tail = tail;
 
         cur_index--;
 
         if (left && left->next) {
             cur_index++;
-            beg[cur_index] = left;
+            //beg[cur_index] = left; // ptr no need to change
             end[cur_index] = left_tail->next;
         }
 
         if (right && right->next) {
             cur_index++;
-            beg[cur_index] = right;
+            beg[cur_index] = pivot;
             end[cur_index] = right_tail->next;
         }
 
-        q->head = q->tail = p = result;
-        while (p && p->next)
-            p = p->next;
-        q->tail = p;
-
-
+        q->head  = result;
     } while (cur_index >= 0);
+
+    //q->tail = q->head;
+    //while (q->tail && q->tail->next)
+    //    q->tail = q->tail->next;
 }
