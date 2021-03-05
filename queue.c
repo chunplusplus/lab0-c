@@ -279,19 +279,35 @@ void q_sort(queue_t *q)
     beg[0] = NULL; //q->head;
     end[0] = NULL;
 
+    int sizes[MAX_LEVELS];
+    sizes[0] = q->size;
+
     int cur_index = 0;
 
-    do {
-	
-        list_ele_t *pivot = beg[cur_index] ? (beg[cur_index])->next : q->head;
-        // char *value = pivot->value;
+    //printf("%ld\n", random());
 
-        list_ele_t *p = pivot->next;
+    do {
+	int size = sizes[cur_index];
+        list_ele_t *pivot, *p;
+
+        pivot = beg[cur_index] ? (beg[cur_index])->next : q->head;
+        if (size < 3) {
+            p = pivot->next;
+	}
+	else {
+	    p = pivot;
+	    list_ele_t *temp = pivot;
+            for (int i = 0; i < size / 2; i++)
+                temp = temp->next;
+
+            pivot = temp->next;
+	    temp->next = pivot->next;
+	}
         pivot->next = NULL;
 
         list_ele_t *left = NULL, *right = NULL, *center = NULL;
         list_ele_t *left_tail = NULL, *right_tail = NULL, *center_tail = NULL;
-
+	int left_size = 0, right_size = 0;
         // quick sort in the range
         while (p != end[cur_index]) {
             list_ele_t *n = p;
@@ -299,6 +315,7 @@ void q_sort(queue_t *q)
 
 	    int cmp = strcmp(n->value, pivot->value);
             if (cmp > 0) {
+		right_size++;
                 list_add_ele_t(&right, n);
                 if (right_tail == NULL)
                     right_tail = n;
@@ -309,6 +326,7 @@ void q_sort(queue_t *q)
 		    center_tail = n;
 	    }
 	    else {
+		left_size++;
                 list_add_ele_t(&left, n);
                 if (left_tail == NULL)
                     left_tail = n;
@@ -318,20 +336,9 @@ void q_sort(queue_t *q)
         list_ele_t *result = NULL, *tail = NULL;
 
         // cut the queue to pivot and concat to result
-/*
-	if (q->head != pivot) {
-            list_ele_t *list_head = q->head;
-            while (list_head->next && list_head->next != pivot)
-                list_head = list_head->next;
-            list_head->next = NULL;
-            list_concat(&result, q->head);
-        }
-*/
-        	
 	if (beg[cur_index])
 	{
             tail = beg[cur_index];
-	    //->next = NULL;
             list_concat(&result, q->head);	    
 	}
         
@@ -364,18 +371,17 @@ void q_sort(queue_t *q)
             cur_index++;
             //beg[cur_index] = left; // ptr no need to change
             end[cur_index] = left_tail->next;
+	    sizes[cur_index] = left_size;
         }
 
         if (right && right->next) {
             cur_index++;
-            beg[cur_index] = pivot;
+            beg[cur_index] = center_tail ? center_tail : pivot;
             end[cur_index] = right_tail->next;
+	    sizes[cur_index] = right_size;
         }
 
         q->head  = result;
     } while (cur_index >= 0);
 
-    //q->tail = q->head;
-    //while (q->tail && q->tail->next)
-    //    q->tail = q->tail->next;
 }
